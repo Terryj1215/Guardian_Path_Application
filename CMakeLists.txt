@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
+# Add vcpkg toolchain 
+set(CMAKE_TOOLCHAIN_FILE "C:/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 project(GuardianPath VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -7,7 +9,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+# ADDED QuickWidgets and Location here
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Positioning QuickWidgets Location)
+find_package(mongocxx REQUIRED)
+find_package(bsoncxx REQUIRED)
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -17,6 +22,7 @@ set(PROJECT_SOURCES
     src/dashboard.h
     src/tracklocation.cpp
     src/tracklocation.h
+    src/mapview.qml  # ADDED the QML file to sources
     src/appliances.cpp
     src/appliances.h
     src/carering.cpp
@@ -34,21 +40,20 @@ set(PROJECT_SOURCES
     src/location.cpp
     src/location.h
     resources/resources.qrc
+    src/gpsmanager.cpp
+    src/gpsmanager.h
+    src/mongodbmanager.cpp
+    src/mongodbmanager.h
 )
 
-qt_add_executable(GuardianPath
-    MANUAL_FINALIZATION
-    ${PROJECT_SOURCES}
-)
+qt_add_executable(GuardianPath WIN32 ${PROJECT_SOURCES})
 
-target_link_libraries(GuardianPath PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
+# ADDED the new Qt modules to the link libraries
+target_link_libraries(GuardianPath PRIVATE 
+    Qt6::Widgets 
+    Qt6::Positioning 
+    Qt6::QuickWidgets 
+    Qt6::Location
+    mongo::mongocxx_shared 
+    mongo::bsoncxx_shared
 )
-
-set_target_properties(GuardianPath PROPERTIES
-    WIN32_EXECUTABLE TRUE
-)
-
-qt_finalize_executable(GuardianPath)

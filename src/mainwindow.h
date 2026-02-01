@@ -13,13 +13,18 @@ class TrackLocation;
 class Appliances;
 class CareRing;
 class Resources;
+class MongoDBManager;
+class GPSManager;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(MongoDBManager* mongoManager, GPSManager* gpsManager, QWidget* parent = nullptr);
+
+    MongoDBManager* mongoManager() const { return m_mongoManager; }
+    GPSManager* gpsManager() const { return m_gpsManager; }
     ~MainWindow() override = default;
 
 private slots:
@@ -55,6 +60,8 @@ private:
     Appliances *appliancesPage;
     CareRing *careRingPage;
     Resources *resourcesPage;
+    MongoDBManager* m_mongoManager;
+    GPSManager* m_gpsManager;
 };
 
 #endif // MAINWINDOW_H

@@ -5,9 +5,13 @@
 #include "carering.h"
 #include "resources.h"
 #include <QStyle>
+#include "mongodbmanager.h"
+#include "gpsmanager.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(MongoDBManager* mongoManager, GPSManager* gpsManager, QWidget* parent)
     : QMainWindow(parent)
+    , m_mongoManager(mongoManager)
+    , m_gpsManager(gpsManager)
 {
     setupUi();
 }
@@ -99,19 +103,23 @@ void MainWindow::createSidebar()
 void MainWindow::createPages()
 {
     pageStack = new QStackedWidget(this);
-    
+
     dashboardPage = new Dashboard(this);
-    trackLocationPage = new TrackLocation(this);
+
+    // UPDATED: Pass the mongoManager to the trackLocationPage
+    trackLocationPage = new TrackLocation(m_mongoManager, this);
+
+    // Note: You should eventually do the same for careRingPage if you want contacts to work!
     appliancesPage = new Appliances(this);
     careRingPage = new CareRing(this);
     resourcesPage = new Resources(this);
-    
+
     pageStack->addWidget(dashboardPage);
     pageStack->addWidget(trackLocationPage);
     pageStack->addWidget(appliancesPage);
     pageStack->addWidget(careRingPage);
     pageStack->addWidget(resourcesPage);
-    
+
     mainLayout->addWidget(pageStack);
 }
 

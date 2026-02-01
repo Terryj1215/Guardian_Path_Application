@@ -13,10 +13,11 @@
       "variables": [
         {
           "name": "CMAKE_PREFIX_PATH",
-          "value": "C:/Qt/6.9.1/msvc2022_64",
+          "value": "C:/Qt/6.9.3/msvc2022_64",
           "type": "PATH"
         }
-      ]
+      ],
+      "cmakeToolchain": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
     }
   ]
 }

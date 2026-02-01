@@ -1,15 +1,37 @@
 #include <QApplication>
+#include <QMessageBox>
 #include "mainwindow.h"
+#include "mongodbmanager.h"
+#include "gpsmanager.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    
+
     // Set application metadata
     QApplication::setApplicationName("Guardian Path");
     QApplication::setApplicationVersion("1.0.0");
     QApplication::setOrganizationName("GuardianPath");
-    
+
+    // Initialize MongoDB connection
+    MongoDBManager* mongoManager = new MongoDBManager(&app);
+    if (!mongoManager->connect("mongodb://localhost:27017", "guardian_path")) {
+        QMessageBox::warning(nullptr, "Database Connection",
+            "Could not connect to MongoDB.\n"
+            "Please ensure MongoDB is running on localhost:27017.\n\n"
+            "The application will continue in offline mode.");
+    }
+    mongoManager->setUserId("demo-user");
+
+    // Initialize GPS manager
+    GPSManager* gpsManager = new GPSManager(&app);
+
+    // Connect GPS updates to MongoDB - saves location with Haversine-calculated safe zone status
+    QObject::connect(gpsManager, &GPSManager::positionUpdated,
+        [mongoManager, gpsManager](double lat, double lng) {
+            mongoManager->saveLocation(lat, lng, gpsManager->isWithinSafeZone());
+        });
+
     // Apply global stylesheet
     app.setStyleSheet(R"(
         /* Guardian Path - Security-First Dark Theme */
@@ -212,9 +234,12 @@ int main(int argc, char *argv[])
             font-size: 13px;
         }
     )");
-    
-    MainWindow window;
+
+    MainWindow window(mongoManager, gpsManager);
     window.show();
-    
+
+    // Start GPS tracking (update every 5 seconds)
+    gpsManager->startTracking(5000);
+
     return app.exec();
 }
