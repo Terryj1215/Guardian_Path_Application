@@ -102,3 +102,18 @@ The dark theme uses the following color palette:
 - Warning: #eab308 (yellow)
 - Danger/SOS: #dc2626 (red)
 - Text: #f0f0f5 (light), #a0a5b5 (muted), #6b7280 (subtle)
+
+## 🚀 Enhancement Two: Algorithms & Geospatial Integration
+In this milestone, the application was upgraded from a static UI mockup to a dynamic system utilizing complex geospatial algorithms and third-party API integration.
+
+### Key Technical Features:
+* **Interactive Mapping Engine:** Integrated OpenStreetMap (OSM) via QML to provide real-time visual feedback of user locations.
+* **Geocoding Search Algorithm:** Implemented an asynchronous search feature that translates human-readable addresses into precise geographic coordinates ($Latitude, Longitude$).
+* **Haversine Distance Logic:** Developed a backend algorithm using the Haversine formula to calculate the great-circle distance between the user and the "Safe Zone" center.
+* **Dynamic Geofencing:** Created a real-time boundary system where a user-defined radius (100m - 5000m) triggers safety alerts based on spatial proximity.
+
+### Technical Stack:
+* **Language:** C++17
+* **Framework:** Qt 6.9 (Widgets, QML, Location, Positioning)
+* **Database:** MongoDB (NoSQL) for persistence of safety zones.
+* **Build System:** CMake
