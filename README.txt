@@ -1,5 +1,3 @@
-Here is the updated content formatted specifically for a README.txt or README.md file. I have removed the conversational text and used standard Markdown formatting that Git renders perfectly.
-
 Markdown
 Guardian Path - C++ Qt Application
 ===================================
