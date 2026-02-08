@@ -24,6 +24,7 @@ public:
     bool connect(const QString& uri = "mongodb://localhost:27017",
         const QString& database = "guardian_path");
     bool isConnected() const;
+    bool updatePrimaryContact(const QString& contactName);
 
     // User ID for this device
     void setUserId(const QString& userId);

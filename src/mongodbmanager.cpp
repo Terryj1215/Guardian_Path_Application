@@ -440,6 +440,41 @@ bool MongoDBManager::setPrimaryContact(const QString& contactId)
     }
 }
 
+bool MongoDBManager::updatePrimaryContact(const QString& contactName)
+{
+    if (!m_connected) return false;
+
+    try {
+        auto db = getDatabase();
+        auto collection = db["contacts"];
+
+        // 1. Unset all current primaries for this user
+        collection.update_many(
+            make_document(kvp("userId", m_userId.toStdString())),
+            make_document(kvp("$set", make_document(kvp("isPrimary", false))))
+        );
+
+        // 2. Set the specific contact (by name) as primary
+        auto filter = make_document(
+            kvp("userId", m_userId.toStdString()),
+            kvp("name", contactName.toStdString())
+        );
+
+        auto update = make_document(
+            kvp("$set", make_document(kvp("isPrimary", true)))
+        );
+
+        collection.update_one(filter.view(), update.view());
+
+        emit contactsChanged(); // Signal the UI to refresh
+        return true;
+    }
+    catch (const mongocxx::exception& e) {
+        emit errorOccurred(QString("Failed to update primary contact: %1").arg(e.what()));
+        return false;
+    }
+}
+
 QJsonArray MongoDBManager::getContacts()
 {
     QJsonArray result;

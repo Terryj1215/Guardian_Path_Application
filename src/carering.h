@@ -7,29 +7,32 @@
 #include <QList>
 #include "contact.h"
 
+class MongoDBManager;
+
 class CareRing : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit CareRing(QWidget *parent = nullptr);
+    explicit CareRing(MongoDBManager* mongo, QWidget* parent = nullptr);
 
 private slots:
     void onAddContact();
-    void onDeleteContact(int id);
-    void onSetPrimary(int id);
-    void onCallContact(const Contact &contact);
-    void onMessageContact(const Contact &contact);
+    void onDeleteContact(int index);
+    void onSetPrimary(int index);
+    void onCallContact(const Contact& contact);
+    void onMessageContact(const Contact& contact);
 
 private:
     void setupUi();
     void refreshContactList();
-    QWidget* createContactCard(const Contact &contact);
-    
-    QScrollArea *scrollArea;
-    QWidget *contentWidget;
-    QVBoxLayout *contactsLayout;
-    
+    void loadContactsFromDB();
+    QWidget* createContactCard(const Contact& contact, int index);
+
+    MongoDBManager* m_mongoManager;
+    QScrollArea* scrollArea;
+    QWidget* contentWidget;
+    QVBoxLayout* contactsLayout;
     QList<Contact> contacts;
     int nextContactId;
 };

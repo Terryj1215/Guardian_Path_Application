@@ -13,26 +13,36 @@ int main(int argc, char* argv[])
     QApplication::setApplicationVersion("1.0.0");
     QApplication::setOrganizationName("GuardianPath");
 
-    // Initialize MongoDB connection
+    // 1. Initialize MongoDB connection
+    // We create this on the heap so it persists throughout the application life
     MongoDBManager* mongoManager = new MongoDBManager(&app);
-    if (!mongoManager->connect("mongodb://localhost:27017", "guardian_path")) {
+
+    // Attempt to connect to the local MongoDB instance
+    // Note: 'guardian_path' is the database that will store your 'contacts' and 'locations'
+    bool dbConnected = mongoManager->connect("mongodb://localhost:27017", "guardian_path");
+
+    if (!dbConnected) {
+        // Outcome 5 (Security/Reliability): Provide clear user feedback for system failure
         QMessageBox::warning(nullptr, "Database Connection",
             "Could not connect to MongoDB.\n"
             "Please ensure MongoDB is running on localhost:27017.\n\n"
-            "The application will continue in offline mode.");
+            "The Care Ring will run in 'Session Only' mode (data will not be saved).");
     }
+
+    // Identity Management: In a real app, this would be tied to a login system
     mongoManager->setUserId("demo-user");
 
-    // Initialize GPS manager
+    // 2. Initialize GPS manager
     GPSManager* gpsManager = new GPSManager(&app);
 
-    // Connect GPS updates to MongoDB - saves location with Haversine-calculated safe zone status
+    // 3. Connect GPS updates to MongoDB 
+    // This bridges the logic between real-time tracking and persistent storage
     QObject::connect(gpsManager, &GPSManager::positionUpdated,
         [mongoManager, gpsManager](double lat, double lng) {
             mongoManager->saveLocation(lat, lng, gpsManager->isWithinSafeZone());
         });
 
-    // Apply global stylesheet
+    // 4. Global Stylesheet - Maintains UI consistency across all modular components
     app.setStyleSheet(R"(
         /* Guardian Path - Security-First Dark Theme */
         QWidget {
@@ -46,89 +56,7 @@ int main(int argc, char* argv[])
             background-color: #141824;
         }
         
-        /* Cards */
-        QFrame[class="card"] {
-            background-color: #232a3d;
-            border: 1px solid #2d3548;
-            border-radius: 12px;
-            padding: 16px;
-        }
-        
-        /* Primary Button */
-        QPushButton[class="primary"] {
-            background-color: #4a6cf7;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        
-        QPushButton[class="primary"]:hover {
-            background-color: #5b7af8;
-        }
-        
-        QPushButton[class="primary"]:pressed {
-            background-color: #3d5ce6;
-        }
-        
-        /* Secondary Button */
-        QPushButton[class="secondary"] {
-            background-color: #2d3548;
-            color: #f0f0f5;
-            border: 1px solid #3d4560;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-weight: 500;
-        }
-        
-        QPushButton[class="secondary"]:hover {
-            background-color: #3d4560;
-        }
-        
-        /* SOS Button */
-        QPushButton[class="sos"] {
-            background-color: #dc2626;
-            color: #ffffff;
-            border: none;
-            border-radius: 50%;
-            font-weight: 700;
-            font-size: 18px;
-        }
-        
-        QPushButton[class="sos"]:hover {
-            background-color: #ef4444;
-        }
-        
-        QPushButton[class="sos"]:pressed {
-            background-color: #b91c1c;
-        }
-        
-        /* Safe/Success Status */
-        QLabel[class="safe"] {
-            background-color: #22c55e;
-            color: #141824;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-weight: 600;
-        }
-        
-        /* Warning Status */
-        QLabel[class="warning"] {
-            background-color: #eab308;
-            color: #141824;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-weight: 600;
-        }
-        
-        /* Sidebar */
-        QFrame[class="sidebar"] {
-            background-color: #111520;
-            border-right: 1px solid #2d3548;
-        }
-        
+        /* Nav and Buttons */
         QPushButton[class="nav-item"] {
             background-color: transparent;
             color: #a0a5b5;
@@ -136,7 +64,6 @@ int main(int argc, char* argv[])
             border-radius: 8px;
             padding: 12px 16px;
             text-align: left;
-            font-size: 14px;
         }
         
         QPushButton[class="nav-item"]:hover {
@@ -148,9 +75,9 @@ int main(int argc, char* argv[])
             background-color: #4a6cf7;
             color: #ffffff;
         }
-        
+
         /* Input Fields */
-        QLineEdit, QTextEdit {
+        QLineEdit, QComboBox {
             background-color: #232a3d;
             color: #f0f0f5;
             border: 1px solid #3d4560;
@@ -158,87 +85,22 @@ int main(int argc, char* argv[])
             padding: 10px 14px;
         }
         
-        QLineEdit:focus, QTextEdit:focus {
-            border-color: #4a6cf7;
-        }
-        
-        /* Slider */
-        QSlider::groove:horizontal {
-            background-color: #2d3548;
-            height: 8px;
-            border-radius: 4px;
-        }
-        
-        QSlider::handle:horizontal {
-            background-color: #4a6cf7;
-            width: 20px;
-            height: 20px;
-            margin: -6px 0;
-            border-radius: 10px;
-        }
-        
-        QSlider::sub-page:horizontal {
-            background-color: #4a6cf7;
-            border-radius: 4px;
-        }
-        
-        /* Toggle Switch (using QCheckBox) */
-        QCheckBox::indicator {
-            width: 44px;
-            height: 24px;
-            border-radius: 12px;
-            background-color: #3d4560;
-        }
-        
-        QCheckBox::indicator:checked {
+        /* Status Badges */
+        QLabel[class="safe"] {
             background-color: #22c55e;
-        }
-        
-        /* Scroll Area */
-        QScrollArea {
-            border: none;
-            background-color: transparent;
-        }
-        
-        QScrollBar:vertical {
-            background-color: #1a1f2e;
-            width: 8px;
+            color: #141824;
             border-radius: 4px;
-        }
-        
-        QScrollBar::handle:vertical {
-            background-color: #3d4560;
-            border-radius: 4px;
-            min-height: 30px;
-        }
-        
-        QScrollBar::handle:vertical:hover {
-            background-color: #4a6cf7;
-        }
-        
-        /* Labels */
-        QLabel[class="title"] {
-            font-size: 24px;
-            font-weight: 700;
-            color: #f0f0f5;
-        }
-        
-        QLabel[class="subtitle"] {
-            font-size: 16px;
-            font-weight: 500;
-            color: #a0a5b5;
-        }
-        
-        QLabel[class="muted"] {
-            color: #6b7280;
-            font-size: 13px;
+            padding: 4px 8px;
+            font-weight: 600;
         }
     )");
 
+    // 5. THE INJECTION: Hand the manager to the UI
+    // This allows MainWindow to pass it down to CareRing and TrackLocation
     MainWindow window(mongoManager, gpsManager);
     window.show();
 
-    // Start GPS tracking (update every 5 seconds)
+    // 6. Start GPS tracking (update every 5 seconds)
     gpsManager->startTracking(5000);
 
     return app.exec();
